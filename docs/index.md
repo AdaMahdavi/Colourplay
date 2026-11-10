@@ -32,5 +32,3 @@
 
 - [Implementation Tasks](tasks.md)
 - [Open Issues](open_issues.md)
-
-The RTL is a teaching scaffold, not a finished display controller.

@@ -8,8 +8,7 @@ display timing belong to their respective units, not to the wrapper.
 
 ## Parameters
 
-None at the wrapper level. The target clock is 50 MHz; this is a design target,
-not a completed timing sign-off.
+None at the wrapper level. The target clock is 50 MHz.
 
 ## Ports
 
@@ -37,9 +36,3 @@ VGA colour pins require a DAC/adapter for a physical monitor; simulation does no
 [![Top-level module hierarchy](../diagrams/tt_um_colourplay.svg)](../diagrams/tt_um_colourplay.svg)
 
 *Click the diagram to open it full size.*
-
-## Implementation Status
-
-Instances and interconnect are present. All child datapaths are skeletons with
-`IMPLEMENTED = 0`. No image is displayed; IO asserts its error output to prevent
-the scaffold from looking like working reception.

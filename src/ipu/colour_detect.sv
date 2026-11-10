@@ -1,14 +1,24 @@
 `default_nettype none
+// this module is purely combinational.
 
 module colour_detect (
-    // original pixel and active configuration from IPU
-    input  logic [23:0] i_colour,
-    input  logic [23:0] i_reference,
-    input  logic [7:0]  i_tolerance,
-    output wire        o_selected
+
+    // from ipu
+    input  logic [23:0]     i_colour,   // original {r, g, b} pixel, before any effect
+    input  logic [23:0]  i_reference,   // configured reference colour
+    input  logic [7:0]   i_tolerance,   // inclusive per-channel difference limit
+
+    // to ipu
+    output logic          o_selected    // pixel is within tolerance on every channel
 );
-    localparam IMPLEMENTED = 0;
-    // TODO: compare absolute channel differences without unsigned wrap.
-    // Select only if all three differences are <= tolerance, including equality.
+
+    // decides whether a pixel belongs to the object we are recolouring. see docs/modules/ipu/colour_detect.md
+
+    // implement the per-channel comparison
+    // * hint: unsigned subtraction wraps around.
+
+
+    // *: placeholder tie-offs, replace as you implement
     assign o_selected = 0;
+
 endmodule

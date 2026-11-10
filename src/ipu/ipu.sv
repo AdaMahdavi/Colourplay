@@ -1,38 +1,48 @@
 `default_nettype none
 
 module ipu (
-    input  logic         clk,
-    input  logic         rst_n,
-    input  logic [127:0] i_configuration,
 
-    // input from IO
-    input  logic [23:0]  i_colour,
-    input  logic         i_valid,
-    output wire          o_ready,
-    input  logic [9:0]   i_x,
-    input  logic [9:0]   i_y,
-    input  logic         i_sof,
-    input  logic         i_eof,
-    input  logic         i_previous_frame_bad,
+    input  logic          clk,
+    input  logic        rst_n,
 
-    // output to VGA
-    output wire [23:0]   o_colour,
-    output wire          o_valid,
-    input  logic         i_ready,
-    output wire [9:0]    o_x,
-    output wire [9:0]    o_y,
-    output wire          o_sof,
-    output wire          o_eof,
-    output wire          o_box_valid,
-    output wire [9:0]    o_min_x,
-    output wire [9:0]    o_max_x,
-    output wire [9:0]    o_min_y,
-    output wire [9:0]    o_max_y
+    // configuration
+    input  logic [63:0]  i_configuration,   // active register copy from io
+
+    // from io
+    input  logic [23:0]         i_colour,   // original {r, g, b}
+    input  logic                 i_valid,
+    output logic                 o_ready,
+    input  logic [9:0]               i_x,
+    input  logic [9:0]               i_y,
+    input  logic                   i_sof,
+    input  logic                   i_eof,
+    input  logic    i_previous_frame_bad,   // sampled with i_sof, passed to bbox
+
+    // to vga
+    output logic [23:0]         o_colour,   // processed {r, g, b}
+    output logic                 o_valid,
+    input  logic                 i_ready,
+    output logic [9:0]               o_x,
+    output logic [9:0]               o_y,
+    output logic                   o_sof,
+    output logic                   o_eof,
+
+    // to vga: bounding box of the previous frame
+    output logic             o_box_valid,
+    output logic [9:0]           o_min_x,
+    output logic [9:0]           o_max_x,
+    output logic [9:0]           o_min_y,
+    output logic [9:0]           o_max_y
 );
-    localparam IMPLEMENTED = 0;
-    wire selected;
-    wire [23:0] hue_colour, contrast_colour;
-    wire hue_done;
+
+    /* joins the colour units into one stream. selection always looks at the original pixel;
+        only selected pixels go through the enabled effects, everything else leaves with its original colour.
+        every accepted pixel must come out exactly once, with its own coordinates and frame markers.
+        see docs/modules/ipu/ipu.md */
+
+    logic        selected;
+    logic [23:0] hue_colour, contrast_colour;
+    logic        hue_done;
 
     colour_detect u_colour_detect (
         .i_colour(i_colour), .i_reference(i_configuration[31:8]),
@@ -55,18 +65,20 @@ module ipu (
         .o_min_y(o_min_y), .o_max_y(o_max_y)
     );
 
-    // TODO: hue is a fixed-latency unit that cannot stall. only start it when
-    //   the result is guaranteed somewhere to go; carry selected, x, y, sof, eof
-    //   alongside it for hue.LATENCY clocks so they rejoin the right pixel.
-    // apply hue/contrast only to selected pixels with the effect enabled;
-    //   unselected pixels leave with their original colour.
-    // every enable/selection combination must have the same total latency.
-    // propagate ready/valid backpressure; a stall must not duplicate or drop pixels.
-    assign o_ready = 0;
+    // implement the elastic stages around the fixed-latency hue unit
+    // implement carrying selection and metadata alongside each pixel
+    // implement the per-pixel bypass for unselected pixels and disabled effects
+
+    // *: hue cannot stall. latency must be the same in every mode.
+
+
+    // *: placeholder tie-offs, replace as you implement
+    assign o_ready  = 0;
     assign o_colour = 0;
-    assign o_valid = 0;
-    assign o_x = 0;
-    assign o_y = 0;
-    assign o_sof = 0;
-    assign o_eof = 0;
+    assign o_valid  = 0;
+    assign o_x      = 0;
+    assign o_y      = 0;
+    assign o_sof    = 0;
+    assign o_eof    = 0;
+
 endmodule

@@ -4,7 +4,7 @@
 
 The Image Processing Unit receives completed RGB888 pixels from IO. It selects a
 colour range, transforms selected pixels and tracks their bounding box. It does
-not perform ray intersections or determine object identity.
+not determine object identity.
 
 ## Parameters
 
@@ -16,7 +16,7 @@ templates keep these widths explicit.
 | Group | Signals |
 |---|---|
 | Clock/reset | `clk`, `rst_n` |
-| Active configuration | `i_configuration[127:0]` |
+| Active configuration | `i_configuration[63:0]` |
 | Pixel sink from IO | `i_colour[23:0]`, `i_valid`, `o_ready`, `i_x[9:0]`, `i_y[9:0]`, `i_sof`, `i_eof` |
 | Frame qualification from IO | `i_previous_frame_bad`, sampled with accepted SOF |
 | Pixel source to VGA | `o_colour[23:0]`, `o_valid`, `i_ready`, `o_x[9:0]`, `o_y[9:0]`, `o_sof`, `o_eof` |
@@ -43,10 +43,7 @@ the VGA lead budget. Transfer coordinates and frame markers alongside RGB.
 `hue` is a fixed-latency unit that cannot stall (see [`hue`](hue.md)). IPU must
 only start it when the result is guaranteed a place to go, and must carry each
 pixel's selection bit and metadata for `hue.LATENCY` clocks so they rejoin the
-right result. `contrast` is combinational and belongs to the same task as IPU.
-
-The skeleton instantiates the four children but holds output valid and ready
-low. It is not a bypass implementation.
+right result. `contrast` is combinational and is implemented in task 4.
 
 ## Implementation Tasks
 

@@ -41,8 +41,9 @@ under the fixed-rate input contract; it is not a solution for a slow or
 unpredictable renderer.
 
 The baseline timing is 640 by 480 active pixels at a nominal 25 MHz pixel rate,
-derived from a 50 MHz system clock using a clock enable. The exact I/O timing,
-pipeline budget and physical feasibility remain draft requirements.
+derived from a 50 MHz system clock using a clock enable. The design targets a
+2x2 tile; the latency, storage and area budget is in
+[Module Interface Contracts](modules/colourplay_if.md).
 
 ## Scope
 

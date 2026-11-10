@@ -2,10 +2,14 @@
 
 ## Overview
 
-IO maintains 16 eight-bit shadow registers. Register `n` occupies
-`configuration[8*n +: 8]`. IPU receives the active copy, committed before a new
-frame enters the processing pipeline. Do not alter a frame's settings halfway
-through its pixels.
+IO decodes 16 eight-bit addresses. Register `n` occupies
+`configuration[8*n +: 8]` of the 64-bit configuration bus for registers 0-7.
+Only the 56 meaningful bits are stored: reserved bits read as zero and need no
+flip-flops. Writes land in a shadow copy; IPU receives the active copy, committed
+before a new frame enters the processing pipeline. The shadow copy is needed
+because the write window opens while the last pixels of the previous frame can
+still be in IPU or VGA staging. Do not alter a frame's settings halfway through
+its pixels.
 
 | Address | Name | Reset | Meaning |
 |---|---|---|---|
@@ -17,7 +21,7 @@ through its pixels.
 | `0x5` | Contrast gain | `0x10` | Unsigned Q4.4 |
 | `0x6` | Hue angle | `0x00` | Step 0-23, degrees = 15 x step; 24-255 rejected |
 | `0x7` | Box minimum run | `0x01` | Run-length noise filter for `bbox`; 0 and 1 disable it |
-| `0x8`-`0xF` | Reserved | `0x00` | Writes must be zero |
+| `0x8`-`0xF` | Reserved | `0x00` | Not stored; nonzero writes are rejected |
 
 The configuration reference is `configuration[31:8] = {R,G,B}`. Colour selection
 and bounding-box tracking operate even when both effects are disabled.
@@ -27,6 +31,3 @@ enable is a later interface extension. The baseline has no register readback
 pins. Input/configuration errors are reported through IO's error signal and VGA's
 visible error indication, sticky until reset. An invalid write leaves shadow
 configuration unchanged.
-
-The RTL currently exposes the configuration bus but does **not** implement these
-registers or reset values.

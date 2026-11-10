@@ -1,11 +1,9 @@
 # Verification Objectives
 
-## Current Checks
+## Smoke Test
 
-The supplied cocotb smoke test elaborates the wired hierarchy and checks the
-intentional inactive outputs. It does **not** test pixel processing, UART, VGA
-timing or protocol compliance. `REQUIRE_FUNCTIONAL=1` explicitly fails until
-functional tests replace this scaffold.
+The cocotb smoke test elaborates the wired hierarchy and checks reset outputs.
+`REQUIRE_FUNCTIONAL=1` makes it fail until functional tests replace it.
 
 ## Unit Acceptance Tests
 
@@ -37,11 +35,10 @@ Verify that bad-frame qualification survives the following SOF and that
 configuration errors raised in blanking remain visible until reset.
 
 The input rate must sustain one RGB888 pixel per two system clocks in active
-bursts. Measure maximum staging occupancy at line/frame boundaries and derive
-the chosen depth from that trace plus an analytical bound.
+bursts. Measure minimum and maximum latency and staging occupancy at line/frame
+boundaries, and confirm `STAGING_DEPTH >= REQUEST_LEAD - L_min`.
 
-## Sign-Off Boundaries
+## Synthesis
 
-Scaffold CI is not functional sign-off. Simulation is not physical sign-off.
-Before fabrication, add synthesis/area reports, timing constraints for external
-input/output paths, reset checks and the selected shuttle's precheck.
+Report each module's flip-flop and multiplier count from yosys and compare it with
+the area budget in [Module Interface Contracts](../docs/modules/colourplay_if.md).

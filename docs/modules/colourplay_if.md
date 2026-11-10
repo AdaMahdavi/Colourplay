@@ -60,12 +60,23 @@ assembling the next valid SOF, it attaches the old history as
 old bounds only when this bit is zero and there were selected pixels. This
 qualification survives the SOF that clears the old reception history.
 
-## Latency and Storage
+## Latency, Storage and Area
 
-Target throughput is one pixel per two clocks. `REQUEST_LEAD=16` pixel slots is
-a provisional end-to-end budget, including source response, assembly, IPU and
-VGA output registering. An implementation must prove this budget before the
-pin protocol is frozen.
+Target throughput is one pixel per two clocks, and the design targets a **2x2**
+Tiny Tapeout tile. The tables below are the budget each module is designed to;
+check your module against it with a yosys estimate early.
+
+| Segment | Budget (clocks) |
+|---|---|
+| Source response, request to beat 1 | 5, fixed by the pin protocol |
+| IO assembly to IPU | 1 |
+| IPU, including `hue.LATENCY` | 5 or fewer |
+| VGA staging input | 1 |
+| **End to end** | **12 or fewer (6 pixel slots)** |
+
+`REQUEST_LEAD=8` slots covers the 6-slot budget with 2 slots of margin.
+`STAGING_DEPTH=4` covers any implementation whose minimum latency is at least
+4 slots; see [`vga`](vga/vga.md).
 
 IO requires a 12-bit partial-beat register plus one 24-bit completed-pixel holding
 register and its valid/coordinate/frame/error sideband. In addition, reserve
@@ -73,12 +84,20 @@ three request-metadata entries of 22 bits each (66 payload bits plus occupancy
 state): requests at edges n, n+2 and n+4 may coexist when beat 0 is sampled.
 An equivalent cycle delay implementation is acceptable. IPU requires stage registers.
 VGA requires bounded scanout staging sized from the measured latency and maximum
-occupancy. There is no specified line buffer or frame buffer.
+occupancy. There is no line buffer or frame buffer.
 
 For sizing, a VGA pixel record is 46 bits: RGB24, x10, y10, SOF1,
 EOF1, plus a separate valid bit (47 total if not tracked by FIFO pointers).
 The IO holding record additionally carries `previous_frame_bad` (48 bits total
 including valid).
-A provisional 16-record staging allocation would be 736 payload bits, not an
-area-approved depth. Reducing or eliminating it requires a cycle-accurate
-fixed-latency contract, not an assumption that average rates match.
+Four staging records are 184 payload bits.
+
+| Block | Main storage | Flip-flops |
+|---|---|---|
+| IO | Partial beat, holding record, 3 request-metadata entries, 2 x 56-bit configuration, lock and errors | about 250 |
+| IPU | Elastic stage registers, hue pipeline with carried metadata, bbox current and published bounds, run counter | about 350 |
+| VGA | Raster and request counters, 4 staging records, box snapshot, output register, errors | about 300 |
+| **Total** | | **900 or fewer** |
+
+Arithmetic adds the hue multipliers (as few as task 3 can manage; the direct
+form's nine is over budget) and three 9 x 8-bit signed contrast products.

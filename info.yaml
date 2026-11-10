@@ -2,11 +2,10 @@ project:
   title: "Colourplay"
   author: "Ada Mahdavi"
   discord: ""
-  description: "Prepared-image colour processing and VGA output (student scaffold)"
+  description: "Prepared-image colour processing and VGA output"
   language: "SystemVerilog"
   clock_hz: 50000000
-  # Placeholder inherited from the template; area and shuttle fit are not signed off.
-  tiles: "1x1"
+  tiles: "2x2"
   top_module: "tt_um_colourplay"
   source_files:
     - "tt_um_colourplay.sv"

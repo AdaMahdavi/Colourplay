@@ -26,9 +26,11 @@ few stray matches do not stretch the box across the image.
 
 Count consecutive selected pixels on the current row; restart the count at
 `x == 0` and on any unselected pixel. A selected pixel counts toward the box
-only once the run has reached `i_min_run`. On the pixel where the run first
-reaches `i_min_run`, the run's first pixel `x - i_min_run + 1` becomes the
-`min_x` candidate. This needs a counter, not a line buffer.
+only once the run has reached `need = max(1, i_min_run)`, so 0 and 1 both
+count every selected pixel. On the pixel where the run first reaches `need`, the
+run's first pixel `x - need + 1` becomes the `min_x` candidate; using
+`i_min_run` directly would give `x + 1` at 0. This needs a counter, not a line
+buffer.
 
 The colour effects still apply to every selected pixel; only the box uses the
 filter.

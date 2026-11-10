@@ -3,7 +3,9 @@
 ## Overview
 
 This module rotates a pixel's colour around the grey axis of the RGB cube, in
-steps of 15 degrees. Brightness and greys are preserved; only the hue turns.
+steps of 15 degrees. Greys and the channel sum R+G+B (before clamping) are
+preserved. Perceived brightness is not, because the eye weights the channels
+unequally.
 It is a fixed-latency unit that cannot stall: IPU starts it at most once every
 two clocks and the result appears exactly `LATENCY` clocks later.
 
@@ -63,18 +65,19 @@ first test case of the general design, not a separate mode.
 
 ### Resources
 
-Each pixel needs nine products of an 8-bit unsigned channel and a 10-bit signed
-coefficient. With one pixel every two clocks, at least five multipliers are
-required if they are shared, nine if not. The choice between table size,
-multiplier count and `LATENCY` is the core design decision of this task;
-record it and its area in the module notes.
+Written directly, each pixel needs nine products of an 8-bit unsigned channel
+and a 10-bit signed coefficient: nine multipliers, or five shared across the
+two-clock slot. That is well over the area budget, and far fewer are possible.
+Finding the smallest multiplier count that stays bit-exact with the model at one
+pixel every two clocks is the core design decision of this task; record the
+count, `LATENCY` and area in the module notes.
 
 ## Implementation Tasks
 
 1. Start with steps 0, 8 and 16, which are plain channel swaps.
 2. Build the 8-row table and the row rotation.
-3. Implement the products, rounding and clamp, and pipeline them to meet the
-   two-clock issue rate.
+3. Implement the products, rounding and clamp, pipeline them to meet the
+   two-clock issue rate, then reduce the multiplier count.
 4. Compare against `hue()` in `test/colourplay_model.py` for every step with
    random pixels, greys (must be unchanged), black, white and pure primaries.
    Starts two clocks apart must each produce exactly one result.

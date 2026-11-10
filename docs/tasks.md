@@ -4,11 +4,12 @@
 
 Each student owns **one task** below. Every task starts with a small first
 step, then builds the main piece, and is checked against `test/colourplay_model.py`.
-The tasks are sized to be comparable; the table under
-[Comparing the tasks](#comparing-the-tasks) shows why.
+The tasks differ in kind: IO and VGA carry the most state, hue the most
+arithmetic. The table under [Comparing the tasks](#comparing-the-tasks) shows
+where each one's difficulty lies.
 
-Module files are port-complete starting points. `IMPLEMENTED=0`, constant
-tie-offs and TODOs are intentional. Replace them with real logic and tests;
+Module files are port-complete starting points with placeholder tie-offs.
+Replace them with real logic and tests;
 never mark a module complete merely because it compiles. Change a shared
 port only by agreement with the owner on the other side.
 
@@ -20,8 +21,8 @@ Turn the two-beat pin protocol into RGB888 pixels with the right coordinates.
 
 - **Start with:** assemble beats from a fixed pattern into pixels.
 - **Then build:** a three-entry request queue that pairs each response with the
-  request VGA made 4 clocks earlier; the 16 configuration registers with
-  shadow/active copies that only change between frames; illegal-write
+  request VGA made 4 clocks earlier; the configuration registers (56 stored
+  bits, shadow and active copies) that only change between frames; illegal-write
   rejection; the lock and error tracking that produces `previous_frame_bad`.
 - **Done when:** back-to-back requests, missing or extra beats, bad SOF and
   illegal writes all behave as in [Input Encoding](encoding/input.md).
@@ -44,27 +45,29 @@ Drive a stable 640 x 480 picture and ask for pixels early enough.
 Rotate colours about the grey axis in 15 degree steps.
 
 - **Start with:** steps 0, 8 and 16, which are plain channel swaps.
-- **Then build:** the 8-row coefficient table and its rotation; nine signed
-  fixed-point products per pixel, rounding and clamping; pipelining and
-  multiplier sharing at one pixel every two clocks.
+- **Then build:** the 8-row coefficient table and its rotation; the products,
+  rounding and clamping; then cut the multiplier count as far as you can while
+  staying bit-exact at one pixel every two clocks.
 - **Done when:** all 24 steps match the model exactly, greys are unchanged,
   and the chosen latency and area are recorded.
 
-### Task 4 - Selection and Bounding Box (`colour_detect`, `bbox`)
+### Task 4 - Selection, Contrast and Bounding Box (`colour_detect`, `contrast`, `bbox`)
 
-Find the object and draw a tight box around it.
+Find the object, adjust its contrast and draw a tight box around it.
 
 - **Start with:** `colour_detect`, the per-channel tolerance test.
-- **Then build:** the run-length noise filter; min/max tracking on accepted pixels
-  only; publishing at frame start, suppressing empty and bad frames.
-- **Done when:** the box matches the model with and without the filter, across
-  frame boundaries and stalls.
+- **Then build:** `contrast`, the saturating gain around 128; the run-length
+  noise filter; min/max tracking on accepted pixels only; publishing at frame
+  start, suppressing empty and bad frames.
+- **Done when:** contrast matches the model at every gain, and the box matches
+  the model with and without the filter, across frame boundaries and stalls.
 
-### Task 5 - Processing Pipeline and Contrast (`ipu`, `contrast`)
+### Task 5 - Processing Pipeline (`ipu`)
 
 Join the colour units into one stream that never loses or repeats a pixel.
 
-- **Start with:** `contrast`, the saturating gain around 128.
+- **Start with:** a pass-through pipeline that delivers every pixel unchanged with
+  its coordinates and frame markers.
 - **Then build:** ready/valid stages around the fixed-latency, non-stallable `hue`;
   carrying selection bits and metadata alongside it; per-pixel bypass so
   unselected pixels keep their colour; equal latency in every mode.
@@ -88,24 +91,23 @@ Prove the whole chip draws the right picture.
 |---|---|---|---|---|
 | 1 IO | Light | Request queue, register file, lock | Pin protocol, metadata order | Protocol faults |
 | 2 VGA | Light | Raster counters, scheduler, staging | Fixed display deadlines | Timing and occupancy |
-| 3 Hue | Heavy (9 products) | Pipeline, multiplier sharing | Fixed latency, no stall | Bit-exact numerics |
-| 4 Selection | Light | Run counter, per-frame bounds | Accepted-pixel and SOF rules | Frame boundaries |
-| 5 Pipeline | Medium (3 products) | Elastic stages, latency matching | Ready/valid both sides | Stall patterns |
+| 3 Hue | Heavy (multiplier sharing) | Pipeline, multiplier sharing | Fixed latency, no stall | Bit-exact numerics |
+| 4 Selection | Medium (3 contrast products) | Run counter, per-frame bounds | Accepted-pixel and SOF rules | Saturation, frame boundaries |
+| 5 Pipeline | Light (bypass muxes) | Elastic stages, latency matching | Ready/valid both sides | Stall patterns |
 | 6 Test bench | Model reuse | Cycle-exact driver | Both pin protocols | Whole-frame images |
-
-Every task has one state-heavy part, one contract it must honour exactly and its
-own verification target.
 
 With fewer than six students, the instructor takes task 6 first, then task 5.
 Each student still owns exactly one task.
 
 ## Milestones
 
-1. **Weeks 1-2:** first steps done; interfaces between neighbouring tasks agreed.
+1. **Weeks 1-2:** first steps done; interfaces between neighbouring tasks agreed;
+   each owner posts a yosys flip-flop and multiplier estimate against the area
+   budget.
 2. **Weeks 3-4:** an unfiltered image through the real request path (tasks
    1, 2, 5, 6); hue and selection pass their unit tests (tasks 3, 4).
 3. **Weeks 5-6:** hue, contrast, selection and box on screen; recovery tests.
-4. **Weeks 7-8:** full-frame comparisons, synthesis and area estimates,
+4. **Weeks 7-8:** full-frame comparisons, synthesis area against the 2x2 budget,
    documentation, and a demo using the [filter playground](demos/playground.html)
    settings.
 
@@ -113,7 +115,7 @@ Each student still owns exactly one task.
 
 - Implemented RTL, matching module page and isolated tests.
 - No unknown outputs, accepted-pixel loss or duplicates.
-- Latency, throughput and storage measured; update the draft budget.
+- Latency, throughput, storage and area measured against the budget.
 - Negative tests exercise visible errors and clean recovery.
 - Remove scaffold tie-offs only when the corresponding tests exist.
 

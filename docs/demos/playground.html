@@ -30,7 +30,7 @@ pre { font: 12px ui-monospace, monospace; background: #0b1019; border-radius: 8p
 <body>
 <main>
 <h1>Colourplay filter playground</h1>
-<p>This page runs the same integer arithmetic as the IPU and VGA specification (<code>test/colourplay_model.py</code>).
+<p>This page is a JavaScript port of the integer arithmetic in <code>test/colourplay_model.py</code>.
 <b>Click the input image</b> to select a colour, then change the configuration registers.</p>
 <div class="layout">
   <div class="views">
@@ -63,7 +63,7 @@ pre { font: 12px ui-monospace, monospace; background: #0b1019; border-radius: 8p
     <fieldset><legend>Configuration registers</legend><pre id="regs"></pre></fieldset>
   </div>
 </div>
-<p>This is a software model, not a recording of the RTL. Students should make their RTL match it bit for bit.</p>
+<p>The RTL must match this arithmetic bit for bit.</p>
 </main>
 <script>
 "use strict";
@@ -75,7 +75,7 @@ function hue(r, g, b, k) {
   return [clamp8((A*r + B*g + C*b + 128) >> 8), clamp8((C*r + A*g + B*b + 128) >> 8), clamp8((B*r + C*g + A*b + 128) >> 8)];
 }
 const BAYER = [[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
-const q2 = (c, d) => Math.min(3, (c + d) >> 6);
+const q2 = (c, t) => (3 * c + t) >> 8;
 const con = (c, gain) => clamp8(128 + (((c - 128) * gain) >> 4));
 const $ = id => document.getElementById(id);
 let W = 0, H = 0, src = null, ref = [177, 100, 105], prevBox = null, sweepTimer = null;
@@ -113,7 +113,7 @@ function render() {
     if (s && hueOn) [r, g, b] = hue(r, g, b, k);
     if (s && conOn) { r = con(r, gain); g = con(g, gain); b = con(b, gain); }
     ipu.set([r, g, b, 255], 4*i);
-    const x = i % W, y = (i / W) | 0, d = ditOn ? 4 * BAYER[y & 3][x & 3] : 0;
+    const x = i % W, y = (i / W) | 0, d = ditOn ? 16 * BAYER[y & 3][x & 3] + 8 : 128;
     if (onEdge(x, y, prevBox)) r = g = b = 255;
     vga.set([q2(r, d) * 85, q2(g, d) * 85, q2(b, d) * 85, 255], 4*i);
   }

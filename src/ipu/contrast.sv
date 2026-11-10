@@ -1,13 +1,23 @@
 `default_nettype none
+// this module is purely combinational.
 
 module contrast (
-    input  logic [23:0] i_colour,
-    input  logic [7:0]  i_gain,
-    output wire [23:0] o_colour
+
+    // from hue (or the original pixel when hue is bypassed)
+    input  logic [23:0]  i_colour,   // {r, g, b}
+    input  logic [7:0]     i_gain,   // unsigned Q4.4, 8'h10 is unity
+
+    // to ipu
+    output logic [23:0]  o_colour    // {r, g, b}, saturated
 );
-    localparam IMPLEMENTED = 0;
-    // TODO: per channel, clamp(128 + (((c - 128) * gain) >>> 4)).
-    // gain is unsigned Q4.4. Widen signed operands before multiplying and clamp
-    // before converting to eight bits. 8'h10 is the identity gain.
+
+    // stretches or squeezes each channel around mid-grey. see docs/modules/ipu/contrast.md
+
+    // implement the per-channel gain and saturation
+    // * hint: decide your signed widths before you write the multiply.
+
+
+    // *: placeholder tie-offs, replace as you implement
     assign o_colour = 0;
+
 endmodule

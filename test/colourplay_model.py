@@ -95,9 +95,13 @@ BAYER = ((0, 8, 2, 10), (12, 4, 14, 6), (3, 11, 1, 9), (15, 7, 13, 5))
 
 
 def rgb222(pixel, x=0, y=0, dither=False):
-    """RGB888 -> RGB222. With dither, add a 4x4 ordered threshold by screen position."""
-    d = 4 * BAYER[y % 4][x % 4] if dither else 0
-    return tuple(min(3, (c + d) >> 6) for c in pixel)
+    """RGB888 -> RGB222 on the 0/85/170/255 DAC scale: level = (3*c + t) >> 8.
+
+    t is 128 (round to nearest) or, with dither, a 4x4 ordered threshold
+    16*BAYER + 8 by screen position. The sum never exceeds 1013, so no clamp.
+    """
+    t = 16 * BAYER[y % 4][x % 4] + 8 if dither else 128
+    return tuple((3 * c + t) >> 8 for c in pixel)
 
 
 def process_frame(pixels, width, cfg, previous_box):
@@ -156,10 +160,14 @@ def _self_check():
     assert bbox([0, 1, 1, 0, 1, 0], 6, 2) == (1, 2, 0, 0)
     assert bbox([0, 0, 0, 1], 4, 2) is None
     assert bbox([1, 0, 1, 1], 2, 2) == (0, 1, 1, 1)
-    assert rgb222((200, 63, 0)) == (3, 0, 0)
+    assert rgb222((200, 63, 0)) == (2, 1, 0)
     assert rgb222((255, 255, 255), 1, 3, True) == (3, 3, 3)
     assert rgb222((40, 40, 40), 0, 0, True) == (0, 0, 0)
     assert rgb222((40, 40, 40), 2, 1, True) == (1, 1, 1)
+    for v in range(256):
+        mean = sum(rgb222((v, v, v), x, y, True)[0] for y in range(4) for x in range(4)) / 16
+        assert abs(85 * mean - v) < 4, v
+        assert abs(85 * rgb222((v, v, v))[0] - v) <= 43, v
 
 
 def _make_gif(source, out_path):

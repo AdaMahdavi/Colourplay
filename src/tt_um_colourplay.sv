@@ -1,27 +1,41 @@
 `default_nettype none
 
 module tt_um_colourplay (
-    input  wire [7:0] ui_in,
-    output wire [7:0] uo_out,
-    input  wire [7:0] uio_in,
-    output wire [7:0] uio_out,
-    output wire [7:0] uio_oe,
-    input  wire       ena,
-    input  wire       clk,
-    input  wire       rst_n
+
+    input  wire [7:0]     ui_in,   // data[7:0] from the prepared-image source
+    output wire [7:0]    uo_out,   // TinyVGA pins
+    input  wire [7:0]    uio_in,   // data[11:8], beat valid, sof, config write
+    output wire [7:0]   uio_out,   // pixel request on bit 7
+    output wire [7:0]    uio_oe,   // only bit 7 is an output
+    input  wire             ena,   // always 1 when the design is selected
+    input  wire             clk,   // 50 MHz
+    input  wire           rst_n
 );
-    localparam IMPLEMENTED = 0;
-    wire request, pixel_valid, pixel_ready, pixel_sof, pixel_eof;
-    wire [23:0] pixel_colour, filtered_colour;
-    wire [9:0] pixel_x, pixel_y, request_x, request_y;
-    wire request_sof, request_eof;
-    wire [127:0] configuration;
-    wire filtered_valid, filtered_ready, filtered_sof, filtered_eof;
-    wire [9:0] filtered_x, filtered_y;
-    wire box_valid;
-    wire [9:0] box_min_x, box_max_x, box_min_y, box_max_y;
-    wire io_error;
-    wire previous_frame_bad;
+
+    // wires io, ipu and vga to the Tiny Tapeout pins. no logic lives here. see docs/modules/tt_um_colourplay.md
+
+    // vga -> io: pixel requests
+    logic        request, request_sof, request_eof;
+    logic [9:0]  request_x, request_y;
+
+    // io -> ipu: assembled pixels
+    logic        pixel_valid, pixel_ready, pixel_sof, pixel_eof;
+    logic [23:0] pixel_colour;
+    logic [9:0]  pixel_x, pixel_y;
+    logic        previous_frame_bad;
+
+    // ipu -> vga: processed pixels
+    logic        filtered_valid, filtered_ready, filtered_sof, filtered_eof;
+    logic [23:0] filtered_colour;
+    logic [9:0]  filtered_x, filtered_y;
+
+    // ipu -> vga: bounding box
+    logic        box_valid;
+    logic [9:0]  box_min_x, box_max_x, box_min_y, box_max_y;
+
+    // io -> ipu, vga: configuration and status
+    logic [63:0] configuration;
+    logic        io_error;
 
     io u_io (
         .clk(clk), .rst_n(rst_n), .i_data({uio_in[3:0], ui_in}),
@@ -58,6 +72,7 @@ module tt_um_colourplay (
     );
 
     assign uio_out = {request, 7'b0};
-    assign uio_oe = 8'b1000_0000;
+    assign uio_oe  = 8'b1000_0000;
     wire _unused = &{ena, 1'b0};
+
 endmodule

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a **draft synchronous parallel protocol**. The harness and chip share
+This is a synchronous parallel protocol. The harness and chip share
 `clk` at a target 50 MHz. The harness drives
 inputs before each rising edge; outputs change after rising edges. A simulation
 driver should drive on falling edges and sample only after settling.

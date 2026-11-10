@@ -10,7 +10,8 @@ blanking and synchronization. There is no top-level timing scheduler beside it.
 
 | Name | Default | Description |
 |---|---|---|
-| `REQUEST_LEAD` | 16 | Draft advance in pixel slots; must cover verified end-to-end latency |
+| `REQUEST_LEAD` | 8 | Advance in pixel slots; must cover the measured end-to-end latency |
+| `STAGING_DEPTH` | 4 | Staging entries; at least `REQUEST_LEAD` minus the minimum measured latency in slots |
 
 ## Ports
 
@@ -34,15 +35,17 @@ clock domain. Use the following target raster:
 | Horizontal | 640 | 16 | 96 | 48 | 800 |
 | Vertical | 480 | 10 | 2 | 33 | 525 |
 
-HSYNC and VSYNC are active-low. A 25 MHz pixel rate yields about 59.52 Hz,
-not exactly the nominal 25.175 MHz VGA timing. Physical monitor tolerance and
-50 MHz closure on the selected IHP process remain unverified.
+HSYNC and VSYNC are active-low. A 25 MHz pixel rate yields about 59.52 Hz
+instead of the 59.94 Hz of nominal 25.175 MHz timing; monitors and the VGA
+playground accept it.
 
 Issue each request `REQUEST_LEAD` slots ahead of its target visible position,
 including wrap through line and frame blanking. The requested coordinate is
 the future pixel's position. Save early arrivals in local staging; consume one
-pixel at each visible display deadline. Size staging from worst-case occupancy,
-including drain during blanking. Do not substitute a frame buffer.
+pixel at each visible display deadline. A pixel waits in staging for
+`REQUEST_LEAD` minus its latency, so occupancy is at most `REQUEST_LEAD - L_min`
+where `L_min` is the minimum end-to-end latency in slots. Measure it and confirm
+`STAGING_DEPTH` covers it. Do not substitute a frame buffer.
 
 At display SOF, snapshot the box for the previous input frame. Overlay a white
 one-pixel inclusive border, then convert to RGB222. Force RGB to zero in
@@ -52,14 +55,20 @@ blanking and register RGB and sync consistently.
 
 The output pins carry only two bits per channel (64 colours), because the eight
 `uo_out` pins hold HSYNC, VSYNC and the [Tiny VGA Pmod](https://github.com/mole99/tiny-vga)
-colour bits. Plain truncation keeps channel bits 7:6, which bands gradients and
-hue changes. With `i_dither_enable`, add a threshold from a 4 x 4 ordered
-(Bayer) matrix indexed by the **screen** position before truncating:
+colour bits. The DAC levels are 0, 85, 170 and 255, so the quantiser scales by
+3/256. Keeping channel bits 7:6 instead would show 128 as 170 and everything from
+192 up as white. Without dither, round to the nearest level; with
+`i_dither_enable`, use a threshold from a 4 x 4 ordered (Bayer) matrix indexed
+by the **screen** position:
 
 ```text
-d   = 4 * BAYER[y % 4][x % 4]            // 0..60
-out = min(3, (channel + d) >> 6)          // per channel, 9-bit sum
+t   = dither ? 16 * BAYER[y % 4][x % 4] + 8 : 128   // 8..248, or 128
+out = (3 * channel + t) >> 8                         // per channel, 10-bit sum
 ```
+
+`3 * channel` is a shift and an add. The sum is at most 765 + 248 = 1013, so
+`out` never exceeds 3 and needs no clamp. Averaged over a 4 x 4 tile, the
+dithered output is within 1.5 % of full scale of the input.
 
 ```text
 BAYER = {{ 0,  8,  2, 10},
@@ -68,9 +77,9 @@ BAYER = {{ 0,  8,  2, 10},
          {15,  7, 13,  5}}
 ```
 
-The same `d` is added to all three channels. Neighbouring pixels then round
+The same `t` is used for all three channels. Neighbouring pixels then round
 differently, so the eye averages them into in-between shades. The overlay
-border (255) stays white because the sum saturates to 3.
+border (255) stays white for every threshold.
 
 ## Errors and Reset
 
