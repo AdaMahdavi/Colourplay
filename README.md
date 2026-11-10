@@ -16,7 +16,7 @@ Passing scaffold checks is not functional verification or tapeout readiness.
 - [Introduction](docs/introduction.md)
 - [Module interfaces](docs/modules/colourplay_if.md)
 - [Implementation tasks](docs/tasks.md)
-- [Editable architecture diagram](docs/diagrams/colourplay.drawio)
+- [Editable architecture diagram](docs/diagrams/tt_um_colourplay.drawio)
 
 ## Visual demos
 

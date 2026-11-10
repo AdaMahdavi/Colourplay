@@ -14,7 +14,7 @@ timed input and an external VGA DAC.
 
 ## Architectural Overview
 
-[![Colourplay module hierarchy](diagrams/colourplay.svg)](diagrams/colourplay.svg)
+[![Colourplay module hierarchy](diagrams/tt_um_colourplay.svg)](diagrams/tt_um_colourplay.svg)
 
 *Click the diagram to open it full size.*
 

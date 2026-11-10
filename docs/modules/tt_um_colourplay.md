@@ -34,7 +34,7 @@ VGA colour pins require a DAC/adapter for a physical monitor; simulation does no
 | `u_ipu` | [`ipu`](ipu/ipu.md) | Original pixels, filtered pixels, completed bounding box |
 | `u_vga` | [`vga`](vga/vga.md) | Pixel requests, processed stream, box, display pins |
 
-[![Top-level module hierarchy](../diagrams/colourplay.svg)](../diagrams/colourplay.svg)
+[![Top-level module hierarchy](../diagrams/tt_um_colourplay.svg)](../diagrams/tt_um_colourplay.svg)
 
 *Click the diagram to open it full size.*
 
