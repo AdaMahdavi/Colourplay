@@ -17,22 +17,15 @@ Passing scaffold checks is not functional verification or tapeout readiness.
 
 ## Visual demos
 
-[Open the interactive colour-effects replay](https://adamahdavi.github.io/Colourplay/demos/colour-effects.html)
-or [explore object-colour variations](https://adamahdavi.github.io/Colourplay/demos/object-colours.html).
+**[Try the interactive demo](https://adamahdavi.github.io/Colourplay/demos/object-colours.html)**
 
-These earlier software visual studies illustrate colour transformations and
-interactive controls. They are **not recordings of Colourplay RTL**. The replay
-uses a serial rendering/UART timing model; the object-colour explorer changes
-scene materials rather than applying Colourplay's pixel mask. Their additional
-effects and controls are not all part of the baseline hardware specification.
+Objects change colour; the sky and ground are left alone.
 
-### Colour-effects replay
+![Object colour changes, background unchanged](docs/demos/object-colours.gif)
 
-![Colour-effects replay animation](docs/demos/colour-effects.gif)
+![Effect comparison sheet](docs/demos/object-colours-sheet.png)
 
-### Button controls
-
-![Button-control demonstration](docs/demos/button-controls.gif)
+These are software previews, not recordings of the Colourplay RTL.
 
 ## Hierarchy
 
