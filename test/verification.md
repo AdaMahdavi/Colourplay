@@ -17,7 +17,7 @@ functional tests replace this scaffold.
 | Contrast | Identity, zero gain, max gain, signed shift, positive/negative clamp |
 | Bounding Box | Empty, one-pixel, edges, disjoint pixels, accepted-SOF boundary, runs one short of and equal to the minimum run |
 | IPU | Pixel accounting, stable stalls, selective bypass, metadata/config alignment |
-| VGA | Raster dimensions, sync widths/polarities, blanking RGB, request lead/wrap, staging occupancy, underflow/overflow |
+| VGA | Raster dimensions, sync widths/polarities, blanking RGB, request lead/wrap, staging occupancy, underflow/overflow, dither pattern against the model |
 
 ## System Test
 

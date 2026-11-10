@@ -91,8 +91,13 @@ def on_box_edge(x, y, box):
     return x0 <= x <= x1 and y0 <= y <= y1 and (x in (x0, x1) or y in (y0, y1))
 
 
-def rgb222(pixel):
-    return tuple(c >> 6 for c in pixel)
+BAYER = ((0, 8, 2, 10), (12, 4, 14, 6), (3, 11, 1, 9), (15, 7, 13, 5))
+
+
+def rgb222(pixel, x=0, y=0, dither=False):
+    """RGB888 -> RGB222. With dither, add a 4x4 ordered threshold by screen position."""
+    d = 4 * BAYER[y % 4][x % 4] if dither else 0
+    return tuple(min(3, (c + d) >> 6) for c in pixel)
 
 
 def process_frame(pixels, width, cfg, previous_box):
@@ -101,9 +106,10 @@ def process_frame(pixels, width, cfg, previous_box):
     for i, p in enumerate(pixels):
         out, sel = ipu_pixel(p, cfg)
         selected.append(sel)
-        if on_box_edge(i % width, i // width, previous_box):
+        x, y = i % width, i // width
+        if on_box_edge(x, y, previous_box):
             out = (255, 255, 255)
-        outputs.append(rgb222(out))
+        outputs.append(rgb222(out, x, y, cfg["dither_enable"]))
     return outputs, bbox(selected, width, cfg["min_run"])
 
 
@@ -111,7 +117,7 @@ def config_registers(cfg):
     """The 16 x 8-bit configuration registers, index = address."""
     r, g, b = cfg["reference"]
     regs = [0] * 16
-    regs[0x0] = int(cfg["hue_enable"]) | (int(cfg["contrast_enable"]) << 1)
+    regs[0x0] = int(cfg["hue_enable"]) | (int(cfg["contrast_enable"]) << 1) | (int(cfg["dither_enable"]) << 2)
     regs[0x1], regs[0x2], regs[0x3] = b, g, r
     regs[0x4] = cfg["tolerance"]
     regs[0x5] = cfg["contrast_gain"]
@@ -128,6 +134,7 @@ DEFAULT_CFG = {
     "contrast_enable": True,
     "contrast_gain": 0x18,
     "min_run": 8,
+    "dither_enable": True,
 }
 
 
@@ -149,6 +156,10 @@ def _self_check():
     assert bbox([0, 1, 1, 0, 1, 0], 6, 2) == (1, 2, 0, 0)
     assert bbox([0, 0, 0, 1], 4, 2) is None
     assert bbox([1, 0, 1, 1], 2, 2) == (0, 1, 1, 1)
+    assert rgb222((200, 63, 0)) == (3, 0, 0)
+    assert rgb222((255, 255, 255), 1, 3, True) == (3, 3, 3)
+    assert rgb222((40, 40, 40), 0, 0, True) == (0, 0, 0)
+    assert rgb222((40, 40, 40), 2, 1, True) == (1, 1, 1)
 
 
 def _make_gif(source, out_path):
@@ -201,9 +212,13 @@ def _make_gif(source, out_path):
     add(show(apply(lambda p: hue(p, 4)), "hue: 60 degrees on selected pixels", "Background passes through unchanged"), 1600)
     add(show(apply(lambda p: contrast(p, 0x20)), "contrast: gain 2.0 on selected pixels",
              "clamp(128 + ((c - 128) * gain >>> 4))"), 1600)
+    add(show(vga(dict(cfg, dither_enable=False)), "vga output (RGB222): plain truncation",
+             "Only 64 colours: gradients band"), 1600)
+    add(show(vga(cfg), "vga output (RGB222): ordered dither",
+             "4x4 Bayer threshold by screen position"), 1600)
     for k in range(HUE_STEPS):
         add(show(vga(dict(cfg, hue_angle=k)), "vga output (RGB222): hue sweep",
-                 "angle {} x 15 = {} deg, contrast 1.5, box from last frame".format(k, 15 * k)), 220)
+                 "angle {} x 15 = {} deg, contrast 1.5, dithered, box from last frame".format(k, 15 * k)), 220)
     durations[-1] = 1500
     frames[0].save(out_path, save_all=True, append_images=frames[1:], duration=durations, loop=0, optimize=True)
 

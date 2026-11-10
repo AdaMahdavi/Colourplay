@@ -34,7 +34,8 @@ Drive a stable 640 x 480 picture and ask for pixels early enough.
   [VGA playground](https://vga-playground.com/).
 - **Then build:** request scheduling `REQUEST_LEAD` slots ahead, including wrap
   through blanking; scanout staging sized from measured worst-case occupancy;
-  box overlay from a per-frame snapshot; RGB222 output; visible errors.
+  box overlay from a per-frame snapshot; RGB222 output with ordered
+  dithering; visible errors.
 - **Done when:** sync widths and polarities, raster size, blanking, request
   order and the staging bound are proven in simulation.
 
@@ -118,6 +119,6 @@ Each student still owns exactly one task.
 
 ## Stretch Tasks
 
-Ordered dithering; a 3-tap horizontal filter; several boxes for separate
+A 3-tap horizontal filter; several boxes for separate
 objects; physical VGA bring-up. Vertical neighbourhood filters need line
 storage and a separate memory budget.

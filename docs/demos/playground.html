@@ -57,6 +57,9 @@ pre { font: 12px ui-monospace, monospace; background: #0b1019; border-radius: 8p
       <label><span><input id="conOn" type="checkbox" checked> enable</span></label>
       <label>Gain <input id="gain" type="range" min="0" max="255" value="24"><output id="gainv"></output></label>
     </fieldset>
+    <fieldset><legend>vga (0x0 bit 2)</legend>
+      <label><span><input id="ditOn" type="checkbox" checked> ordered dither</span></label>
+    </fieldset>
     <fieldset><legend>Configuration registers</legend><pre id="regs"></pre></fieldset>
   </div>
 </div>
@@ -71,6 +74,8 @@ function hue(r, g, b, k) {
   const [A,B,C] = coef(k);
   return [clamp8((A*r + B*g + C*b + 128) >> 8), clamp8((C*r + A*g + B*b + 128) >> 8), clamp8((B*r + C*g + A*b + 128) >> 8)];
 }
+const BAYER = [[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+const q2 = (c, d) => Math.min(3, (c + d) >> 6);
 const con = (c, gain) => clamp8(128 + (((c - 128) * gain) >> 4));
 const $ = id => document.getElementById(id);
 let W = 0, H = 0, src = null, ref = [177, 100, 105], prevBox = null, sweepTimer = null;
@@ -97,7 +102,7 @@ function draw(id, buf) {
 
 function render() {
   const tol = +$("tol").value, minRun = +$("run").value, k = +$("ang").value, gain = +$("gain").value;
-  const hueOn = $("hueOn").checked, conOn = $("conOn").checked;
+  const hueOn = $("hueOn").checked, conOn = $("conOn").checked, ditOn = $("ditOn").checked;
   const n = W * H, sel = new Uint8Array(n);
   const mask = new Uint8ClampedArray(n * 4), ipu = new Uint8ClampedArray(n * 4), vga = new Uint8ClampedArray(n * 4);
   for (let i = 0; i < n; i++) {
@@ -108,8 +113,9 @@ function render() {
     if (s && hueOn) [r, g, b] = hue(r, g, b, k);
     if (s && conOn) { r = con(r, gain); g = con(g, gain); b = con(b, gain); }
     ipu.set([r, g, b, 255], 4*i);
-    if (onEdge(i % W, (i / W) | 0, prevBox)) r = g = b = 255;
-    vga.set([(r >> 6) * 85, (g >> 6) * 85, (b >> 6) * 85, 255], 4*i);
+    const x = i % W, y = (i / W) | 0, d = ditOn ? 4 * BAYER[y & 3][x & 3] : 0;
+    if (onEdge(x, y, prevBox)) r = g = b = 255;
+    vga.set([q2(r, d) * 85, q2(g, d) * 85, q2(b, d) * 85, 255], 4*i);
   }
   const box = bbox(sel, minRun);
   for (let i = 0; i < n; i++) if (onEdge(i % W, (i / W) | 0, box)) mask.set([60, 255, 90, 255], 4*i);
@@ -123,7 +129,7 @@ function render() {
   $("boxv").textContent = box ? `x ${box[0]}-${box[1]}, y ${box[2]}-${box[3]}` : "none (valid=0)";
   $("angv").textContent = `${k} = ${15 * k}\u00b0`; $("coefv").textContent = coef(k).join(", ");
   $("gainv").textContent = `0x${gain.toString(16).padStart(2, "0")} = ${(gain / 16).toFixed(4).replace(/0+$/, "").replace(/\.$/, "")}x`;
-  const regs = [ (hueOn ? 1 : 0) | (conOn ? 2 : 0), ref[2], ref[1], ref[0], tol, gain, k, minRun ];
+  const regs = [ (hueOn ? 1 : 0) | (conOn ? 2 : 0) | (ditOn ? 4 : 0), ref[2], ref[1], ref[0], tol, gain, k, minRun ];
   $("regs").textContent = regs.map((v, a) => `0x${a.toString(16)}: 0x${v.toString(16).padStart(2, "0")}`).join("\n") + "\n0x8-0xf: 0x00";
 }
 
@@ -141,7 +147,7 @@ $("in").addEventListener("click", e => {
   const x = Math.floor((e.clientX - r.left) * W / r.width), y = Math.floor((e.clientY - r.top) * H / r.height);
   const i = 4 * (y * W + x); ref = [src[i], src[i+1], src[i+2]]; render();
 });
-for (const id of ["tol", "run", "ang", "gain", "hueOn", "conOn"]) $(id).addEventListener("input", render);
+for (const id of ["tol", "run", "ang", "gain", "hueOn", "conOn", "ditOn"]) $(id).addEventListener("input", render);
 $("sweep").addEventListener("click", () => {
   if (sweepTimer) { clearInterval(sweepTimer); sweepTimer = null; $("sweep").textContent = "Sweep"; return; }
   $("hueOn").checked = true; $("sweep").textContent = "Stop";

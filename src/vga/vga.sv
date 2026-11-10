@@ -27,6 +27,8 @@ module vga #(
     input  logic [9:0]  i_min_y,
     input  logic [9:0]  i_max_y,
     input  logic        i_error,
+    // configuration register 0x0 bit 2
+    input  logic        i_dither_enable,
 
     // output to TinyVGA-compatible pins
     output wire [7:0]   o_vga
@@ -34,7 +36,9 @@ module vga #(
     localparam IMPLEMENTED = 0;
     // TODO(student): own /2 pixel enable, raster counters and advance requests.
     // Keep returned pixels in bounded local staging, matched by coordinates.
-    // Draw the box, quantize to RGB222 and align RGB with sync/blanking.
+    // Draw the box, then convert to RGB222: with i_dither_enable add
+    //   4 * BAYER[y%4][x%4] (screen position) to each channel, keep bits 7:6 of
+    //   the 9-bit sum, saturate at 3. Align RGB with sync/blanking.
     // Missing pixels produce visible magenta plus sticky error, never a stall.
     // REQUEST_LEAD is a draft budget, not proof of buffering or timing closure.
     assign o_request = 0;

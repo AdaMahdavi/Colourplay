@@ -53,6 +53,7 @@ module tt_um_colourplay (
         .i_x(filtered_x), .i_y(filtered_y), .i_sof(filtered_sof), .i_eof(filtered_eof),
         .i_box_valid(box_valid), .i_min_x(box_min_x), .i_max_x(box_max_x),
         .i_min_y(box_min_y), .i_max_y(box_max_y), .i_error(io_error),
+        .i_dither_enable(configuration[2]),
         .o_vga(uo_out)
     );
 

@@ -9,7 +9,7 @@ through its pixels.
 
 | Address | Name | Reset | Meaning |
 |---|---|---|---|
-| `0x0` | Effect enables | `0x00` | Bit 0: hue; bit 1: contrast; bits 7:2 reserved zero |
+| `0x0` | Effect enables | `0x00` | Bit 0: hue; bit 1: contrast; bit 2: VGA dither; bits 7:3 reserved zero |
 | `0x1` | Reference blue | `0x00` | Selection reference B |
 | `0x2` | Reference green | `0x00` | Selection reference G |
 | `0x3` | Reference red | `0x00` | Selection reference R |
