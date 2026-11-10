@@ -27,7 +27,6 @@ nav:
       - "vga - VGA Output Unit": modules/vga/vga.md
   - Development:
       - Implementation Tasks: tasks.md
-      - Verification: verification.md
       - Open Issues: open_issues.md
 exclude_docs: |
   info.md

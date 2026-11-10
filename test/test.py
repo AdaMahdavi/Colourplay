@@ -24,5 +24,5 @@ async def scaffold_smoke(dut):
     if os.environ.get("REQUIRE_FUNCTIONAL") == "1":
         raise AssertionError(
             "NOT IMPLEMENTED: replace scaffold assertions with the acceptance "
-            "tests in docs/verification.md before enabling functional sign-off"
+            "tests in test/verification.md before enabling functional sign-off"
         )

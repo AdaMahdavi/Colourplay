@@ -1,4 +1,4 @@
-# Verification
+# Verification Objectives
 
 ## Current Checks
 

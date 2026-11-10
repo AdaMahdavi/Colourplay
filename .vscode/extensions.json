@@ -1,6 +1,7 @@
 {
   "recommendations": [
     "mshr-h.veriloghdl",
-    "surfer-project.surfer"
+    "surfer-project.surfer",
+    "hediet.vscode-drawio"
   ]
 }

@@ -8,7 +8,7 @@ request-pin output enable. It does not claim that filtering or VGA works.
 `REQUIRE_FUNCTIONAL=1 make -C test` deliberately fails until functional
 acceptance tests are implemented.
 
-See [verification objectives](../docs/verification.md) and
+See [verification objectives](verification.md) and
 [implementation tasks](../docs/tasks.md). Replace scaffold checks as modules
 become functional; do not make real functionality satisfy obsolete tie-off tests.
 
