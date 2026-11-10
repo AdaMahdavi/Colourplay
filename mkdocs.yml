@@ -31,5 +31,4 @@ nav:
 exclude_docs: |
   info.md
   requirements.txt
-  diagrams/*.d2
   diagrams/*.drawio
