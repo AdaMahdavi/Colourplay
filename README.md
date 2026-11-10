@@ -1,3 +1,5 @@
+![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg) ![](../../workflows/fpga/badge.svg)
+
 # Colourplay
 
 Colourplay is a standalone image-processing project for Tiny Tapeout. A prepared
@@ -10,6 +12,7 @@ wired, but processing and display modules are deliberately unimplemented.
 Passing scaffold checks is not functional verification or tapeout readiness.
 
 - [Design documentation](https://adamahdavi.github.io/Colourplay/)
+- [TinyTapeout 3D viewer](https://adamahdavi.github.io/Colourplay/gds/)
 - [Introduction](docs/introduction.md)
 - [Module interfaces](docs/modules/colourplay_if.md)
 - [Implementation tasks](docs/tasks.md)
@@ -72,8 +75,8 @@ REQUIRE_FUNCTIONAL=1 make -C test
 ```
 
 Each RTL template has `IMPLEMENTED = 0`. Implement the module and its acceptance
-tests before changing this marker. GDS and FPGA workflows are manual-only while
-the project is a skeleton; the design-documentation workflow owns GitHub Pages.
+tests before changing this marker. The GDS workflow runs on every push and
+publishes the spec site plus the TinyTapeout viewer (under `/gds/`) to GitHub Pages.
 
 ## Ownership
 
