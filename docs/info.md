@@ -1,20 +1,19 @@
-<!---
-
-This file is used to generate your project datasheet. Please fill in the information below and delete any unused
-sections.
-
-You can also include images in this folder and reference them in the markdown. Each image must be less than
-512 kb in size, and the combined size of all images must be less than 1 MB.
--->
-
 ## How it works
 
-Explain how your project works
+Colourplay is a standalone image-processing prototype. A prepared source sends
+two 12-bit beats per RGB888 pixel. IO assembles pixels, IPU selectively changes
+their colours, and VGA schedules requests and displays RGB222 with a bounding box.
+Image storage stays in the source harness, not on the chip.
+
+The RTL currently consists of wired student skeletons. It does not yet process
+images or generate valid VGA timing. Clock, area and I/O protocol are draft targets.
 
 ## How to test
 
-Explain how to use your project
+Run the scaffold smoke test in `test/`. Functional acceptance criteria and module
+specifications are published at https://adamahdavi.github.io/Colourplay/.
 
 ## External hardware
 
-List external hardware used in your project (e.g. PMOD, LED display, etc), if any
+The baseline is a simulation/playground source and viewer. Physical operation
+requires a synchronous image source and a TinyVGA-compatible DAC/adapter.

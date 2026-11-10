@@ -1,47 +1,16 @@
-# Sample testbench for a Tiny Tapeout project
+# Scaffold simulation
 
-This is a sample testbench for a Tiny Tapeout project. It uses [cocotb](https://docs.cocotb.org/en/stable/) to drive the DUT and check the outputs.
-See below to get started or for more information, check the [website](https://tinytapeout.com/hdl/testing/).
+Run `make -C test` from the repository root with Icarus Verilog, Make and the
+packages in [requirements.txt](requirements.txt) installed.
 
-## Setting up
+The current test verifies only elaboration, constant safe outputs and the
+request-pin output enable. It does not claim that filtering or VGA works.
+`REQUIRE_FUNCTIONAL=1 make -C test` deliberately fails until functional
+acceptance tests are implemented.
 
-1. Edit [Makefile](Makefile) and modify `PROJECT_SOURCES` to point to your Verilog files.
-2. Edit [tb.v](tb.v) and replace `tt_um_example` with your module name.
+See [verification objectives](../docs/verification.md) and
+[implementation tasks](../docs/tasks.md). Replace scaffold checks as modules
+become functional; do not make real functionality satisfy obsolete tie-off tests.
 
-## How to run
-
-To run the RTL simulation:
-
-```sh
-make -B
-```
-
-To run gatelevel simulation, first harden your project and copy `../runs/wokwi/results/final/verilog/gl/{your_module_name}.v` to `gate_level_netlist.v`.
-
-Then run:
-
-```sh
-make -B GATES=yes
-```
-
-If you wish to save the waveform in VCD format instead of FST format, edit tb.v to use `$dumpfile("tb.vcd");` and then run:
-
-```sh
-make -B FST=
-```
-
-This will generate `tb.vcd` instead of `tb.fst`.
-
-## How to view the waveform file
-
-Using GTKWave
-
-```sh
-gtkwave tb.fst tb.gtkw
-```
-
-Using Surfer
-
-```sh
-surfer tb.fst
-```
+The inherited gate-level build remains available through the manual GDS workflow
+but is not a functional sign-off for these skeletons.

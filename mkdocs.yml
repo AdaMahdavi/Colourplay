@@ -1,0 +1,36 @@
+site_name: Colourplay
+site_description: Design documentation for a standalone Tiny Tapeout image-processing pipeline.
+site_url: https://adamahdavi.github.io/Colourplay/
+repo_url: https://github.com/AdaMahdavi/Colourplay
+theme:
+  name: readthedocs
+  sticky_navigation: false
+nav:
+  - Home: index.md
+  - Introduction: introduction.md
+  - Encoding:
+      - Number Formats: encoding/number_format.md
+      - Input Encoding: encoding/input.md
+      - Configuration Encoding: encoding/configuration.md
+  - Colourplay:
+      - "tt_um_colourplay - Top-Level Module": modules/tt_um_colourplay.md
+      - "colourplay_if - Module Interface Contracts": modules/colourplay_if.md
+  - IO:
+      - "io - Input Unit": modules/io/io.md
+  - IPU:
+      - "ipu - Image Processing Unit": modules/ipu/ipu.md
+      - "colour_detect - Colour Detection": modules/ipu/colour_detect.md
+      - "hue - Hue Unit": modules/ipu/hue.md
+      - "contrast - Contrast Unit": modules/ipu/contrast.md
+      - "bbox - Bounding Box Unit": modules/ipu/bbox.md
+  - VGA:
+      - "vga - VGA Output Unit": modules/vga/vga.md
+  - Development:
+      - Implementation Tasks: tasks.md
+      - Verification: verification.md
+      - Open Issues: open_issues.md
+exclude_docs: |
+  info.md
+  requirements.txt
+  diagrams/*.d2
+  diagrams/*.drawio

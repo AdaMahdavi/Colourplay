@@ -1,0 +1,31 @@
+<mxfile host="Electron">
+  <diagram id="colourplay" name="Module Hierarchy">
+    <mxGraphModel grid="1" gridSize="10" page="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="chip" value="tt_um_colourplay - Top-Level Module" style="swimlane;html=1;startSize=40;fillColor=#f5f8fc;strokeColor=#6c8ebf;fontSize=18;" vertex="1" parent="1"><mxGeometry x="240" y="40" width="1000" height="500" as="geometry"/></mxCell>
+        <mxCell id="source" value="Prepared Image Source&#xa;Instructor harness" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;fontSize=16;" vertex="1" parent="1"><mxGeometry x="20" y="220" width="180" height="100" as="geometry"/></mxCell>
+        <mxCell id="io" value="io&#xa;Input Unit&#xa;&#xa;Beat assembly&#xa;Pixel metadata&#xa;Configuration" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;fontSize=16;" vertex="1" parent="chip"><mxGeometry x="30" y="150" width="190" height="180" as="geometry"/></mxCell>
+        <mxCell id="ipu" value="ipu - Image Processing Unit" style="swimlane;html=1;startSize=40;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=17;" vertex="1" parent="chip"><mxGeometry x="300" y="80" width="380" height="310" as="geometry"/></mxCell>
+        <mxCell id="detect" value="colour_detect" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;fontSize=15;" vertex="1" parent="ipu"><mxGeometry x="20" y="60" width="140" height="60" as="geometry"/></mxCell>
+        <mxCell id="hue" value="hue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;fontSize=15;" vertex="1" parent="ipu"><mxGeometry x="210" y="60" width="140" height="60" as="geometry"/></mxCell>
+        <mxCell id="contrast" value="contrast" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;fontSize=15;" vertex="1" parent="ipu"><mxGeometry x="210" y="160" width="140" height="60" as="geometry"/></mxCell>
+        <mxCell id="bbox" value="bbox" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;fontSize=15;" vertex="1" parent="ipu"><mxGeometry x="20" y="220" width="140" height="60" as="geometry"/></mxCell>
+        <mxCell id="vga" value="vga&#xa;VGA Output Unit&#xa;&#xa;Raster + requests&#xa;Scanout staging&#xa;Box overlay&#xa;Quantization + sync" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16;" vertex="1" parent="chip"><mxGeometry x="770" y="140" width="200" height="220" as="geometry"/></mxCell>
+        <mxCell id="viewer" value="VGA Display&#xa;Playground / simulator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;fontSize=16;" vertex="1" parent="1"><mxGeometry x="1360" y="220" width="180" height="100" as="geometry"/></mxCell>
+        <mxCell id="notes" value="Proposed hierarchy; child datapaths are student skeletons. IPU owns bypass/control around the colour units.&#xa;Image storage stays in the source harness. Local storage and physical timing require validation." style="text;whiteSpace=wrap;html=1;fontSize=16;align=left;" vertex="1" parent="1"><mxGeometry x="240" y="580" width="1000" height="80" as="geometry"/></mxCell>
+        <mxCell id="e1" value="Two-beat RGB888" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" edge="1" source="source" target="io" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" value="Pixel channel&#xa;+ configuration" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" edge="1" source="io" target="detect" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" value="RGB + selection" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" edge="1" source="detect" target="hue" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" value="Colour" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" edge="1" source="hue" target="contrast" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" value="Selection + coordinates" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" edge="1" source="detect" target="bbox" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" value="Processed pixels" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" edge="1" source="contrast" target="vga" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e7" value="Completed bounds" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=1;" edge="1" source="bbox" target="vga" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="630" y="460"/><mxPoint x="1110" y="460"/></Array></mxGeometry></mxCell>
+        <mxCell id="e8" value="Advance requests" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=1;" edge="1" source="vga" target="io" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1110" y="510"/><mxPoint x="365" y="510"/></Array></mxGeometry></mxCell>
+        <mxCell id="e9" value="Request" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=block;exitX=0;exitY=0.8;entryX=0.5;entryY=1;" edge="1" source="io" target="source" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e10" value="RGB222 + HSYNC + VSYNC" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" edge="1" source="vga" target="viewer" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

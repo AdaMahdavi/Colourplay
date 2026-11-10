@@ -1,42 +1,71 @@
-![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg) ![](../../workflows/fpga/badge.svg)
+# Colourplay
 
-# Tiny Tapeout Verilog Project Template
+Colourplay is a standalone image-processing project for Tiny Tapeout. A prepared
+source supplies RGB pixels, the chip selectively changes their colours, and a
+VGA output displays the result. The project is designed for learning streaming
+image processing, module-level verification and display pipelines.
 
-- [Read the documentation for project](docs/info.md)
+**Status: design specification and student RTL skeletons.** The hierarchy is
+wired, but processing and display modules are deliberately unimplemented.
+Passing scaffold checks is not functional verification or tapeout readiness.
 
-## What is Tiny Tapeout?
+- [Design documentation](https://adamahdavi.github.io/Colourplay/)
+- [Introduction](docs/introduction.md)
+- [Module interfaces](docs/modules/colourplay_if.md)
+- [Implementation tasks](docs/tasks.md)
+- [Verification objectives](docs/verification.md)
+- [Editable architecture diagram](docs/diagrams/colourplay.drawio)
 
-Tiny Tapeout is an educational project that aims to make it easier and cheaper than ever to get your digital and analog designs manufactured on a real chip.
+## Hierarchy
 
-To learn more and get started, visit https://tinytapeout.com.
+```text
+tt_um_colourplay
+├── io
+├── ipu
+│   ├── colour_detect
+│   ├── hue
+│   ├── contrast
+│   └── bbox
+└── vga
+```
 
-## Set up your Verilog project
+Module templates use explicit `i_`/`o_` ports grouped by their neighbouring module,
+parameters where appropriate, and implementation hints rather than completed
+solutions, following the author's
+[PCS templates](https://github.com/AdaMahdavi/10G-Ethernet-Parser/tree/main/RTL/PCS).
 
-1. Add your Verilog files to the `src` folder.
-2. Edit the [info.yaml](info.yaml) and update information about your project, paying special attention to the `source_files` and `top_module` properties. If you are upgrading an existing Tiny Tapeout project, check out our [online info.yaml migration tool](https://tinytapeout.github.io/tt-yaml-upgrade-tool/).
-3. Edit [docs/info.md](docs/info.md) and add a description of your project.
-4. Adapt the testbench to your design. See [test/README.md](test/README.md) for more information.
+## Build the documentation
 
-The GitHub action will automatically build the ASIC files using [LibreLane](https://www.zerotoasiccourse.com/terminology/librelane/).
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -r docs/requirements.txt
+mkdocs build --strict
+mkdocs serve
+```
 
-## Enable GitHub actions to build the results page
+## Check the skeleton
 
-- [Enabling GitHub Pages](https://tinytapeout.com/faq/#my-github-action-is-failing-on-the-pages-part)
+With Icarus Verilog and Make installed:
 
-## Resources
+```sh
+pip install -r test/requirements.txt
+make -C test
+```
 
-- [FAQ](https://tinytapeout.com/faq/)
-- [Digital design lessons](https://tinytapeout.com/digital_design/)
-- [Learn how semiconductors work](https://tinytapeout.com/siliwiz/)
-- [Join the community](https://tinytapeout.com/discord)
-- [Build your design locally](https://www.tinytapeout.com/guides/local-hardening/)
+This checks only elaboration, reset and scaffold tie-offs. For an explicit
+**expected failure** showing that functional sign-off is not available:
 
-## What next?
+```sh
+REQUIRE_FUNCTIONAL=1 make -C test
+```
 
-- [Submit your design to the next shuttle](https://app.tinytapeout.com/).
-- Edit [this README](README.md) and explain your design, how it works, and how to test it.
-- Share your project on your social network of choice:
-  - LinkedIn [#tinytapeout](https://www.linkedin.com/search/results/content/?keywords=%23tinytapeout) [@TinyTapeout](https://www.linkedin.com/company/100708654/)
-  - Mastodon [#tinytapeout](https://chaos.social/tags/tinytapeout) [@matthewvenn](https://chaos.social/@matthewvenn)
-  - X (formerly Twitter) [#tinytapeout](https://twitter.com/hashtag/tinytapeout) [@tinytapeout](https://twitter.com/tinytapeout)
-  - Bluesky [@tinytapeout.com](https://bsky.app/profile/tinytapeout.com)
+Each RTL template has `IMPLEMENTED = 0`. Implement the module and its acceptance
+tests before changing this marker. GDS and FPGA workflows are manual-only while
+the project is a skeleton; the design-documentation workflow owns GitHub Pages.
+
+## Ownership
+
+Project owner: Ada Mahdavi. No external collaborators are required for setup.
+The instructor supplies the image replay harness; student work covers IO, IPU,
+VGA and their verification.
