@@ -27,7 +27,7 @@ templates keep these widths explicit.
 | Instance | Module | Purpose |
 |---|---|---|
 | `u_colour_detect` | [`colour_detect`](colour_detect.md) | Classify the original colour |
-| `u_hue` | [`hue`](hue.md) | Rotate selected colour channels |
+| `u_hue` | [`hue`](hue.md) | Rotate the hue of selected pixels |
 | `u_contrast` | [`contrast`](contrast.md) | Apply gain around channel midpoint |
 | `u_bbox` | [`bbox`](bbox.md) | Track selected accepted coordinates |
 
@@ -39,6 +39,11 @@ the colour.
 Maintain a fixed latency across enable/mode combinations in the standalone
 display path. The exact stage count is an implementation decision subject to
 the VGA lead budget. Transfer coordinates and frame markers alongside RGB.
+
+`hue` is a fixed-latency unit that cannot stall (see [`hue`](hue.md)). IPU must
+only start it when the result is guaranteed a place to go, and must carry each
+pixel's selection bit and metadata for `hue.LATENCY` clocks so they rejoin the
+right result. `contrast` is combinational and belongs to the same task as IPU.
 
 The skeleton instantiates the four children but holds output valid and ready
 low. It is not a bypass implementation.

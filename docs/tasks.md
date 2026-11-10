@@ -2,40 +2,111 @@
 
 ## Working Agreement
 
+Each student owns **one task** below. Every task starts with a small first
+step, then builds the main piece, and is checked against `test/colourplay_model.py`.
+The tasks are sized to be comparable; the table under
+[Comparing the tasks](#comparing-the-tasks) shows why.
+
 Module files are port-complete starting points. `IMPLEMENTED=0`, constant
 tie-offs and TODOs are intentional. Replace them with real logic and tests;
-never mark a module complete merely because it compiles.
+never mark a module complete merely because it compiles. Change a shared
+port only by agreement with the owner on the other side.
 
-Assign people to module boundaries, not to overlapping pieces of one module.
-Verification accompanies every task. The instructor owns image preparation,
-the source driver and system integration decisions.
+## Tasks
 
-## Work Packages
+### Task 1 - Input Unit (`io`)
 
-| Task | Owner slot | Deliverable | Acceptance |
-|---|---|---|---|
-| IO-1: pixel input | 1 | Two-beat assembly and request metadata | Consecutive pixels, stalls, bad beats, SOF recovery |
-| IO-2: configuration | 1 | Shadow/active registers | Reset defaults; no mid-frame changes; reject illegal writes |
-| IPU-1: selection/contrast | 2 | Detector, saturating contrast | Integer-model agreement at boundaries |
-| IPU-2: hue/control | 3 | Channel rotations and selective bypass | Original background preserved; equal latency by mode |
-| IPU-3: box | 4 | Bounds and empty-frame state | Correct accepted-SOF publication and inclusive bounds |
-| VGA-1: raster | 5 | Counter/sync test pattern | Exact 800 by 525 raster and active-low pulse widths |
-| VGA-2: scanout | 5 | Requests, staging, overlay | No stale pixels; occupancy bound; visible errors |
-| SYS-1: verification | 6 or shared | Replay tests and captured images | Whole-frame RGB/coordinates/sync comparisons |
+Turn the two-beat pin protocol into RGB888 pixels with the right coordinates.
 
-With four people, combine the two IPU colour tasks and share system verification.
-With five or six, preserve a clear verification/integration owner.
+- **Start with:** assemble beats from a fixed pattern into pixels.
+- **Then build:** a three-entry request queue that pairs each response with the
+  request VGA made 4 clocks earlier; the 16 configuration registers with
+  shadow/active copies that only change between frames; illegal-write
+  rejection; the lock and error tracking that produces `previous_frame_bad`.
+- **Done when:** back-to-back requests, missing or extra beats, bad SOF and
+  illegal writes all behave as in [Input Encoding](encoding/input.md).
+
+### Task 2 - VGA Output Unit (`vga`)
+
+Drive a stable 640 x 480 picture and ask for pixels early enough.
+
+- **Start with:** a colour-bar test pattern, viewed in the
+  [VGA playground](https://vga-playground.com/).
+- **Then build:** request scheduling `REQUEST_LEAD` slots ahead, including wrap
+  through blanking; scanout staging sized from measured worst-case occupancy;
+  box overlay from a per-frame snapshot; RGB222 output; visible errors.
+- **Done when:** sync widths and polarities, raster size, blanking, request
+  order and the staging bound are proven in simulation.
+
+### Task 3 - Hue Rotation (`hue`)
+
+Rotate colours about the grey axis in 15 degree steps.
+
+- **Start with:** steps 0, 8 and 16, which are plain channel swaps.
+- **Then build:** the 8-row coefficient table and its rotation; nine signed
+  fixed-point products per pixel, rounding and clamping; pipelining and
+  multiplier sharing at one pixel every two clocks.
+- **Done when:** all 24 steps match the model exactly, greys are unchanged,
+  and the chosen latency and area are recorded.
+
+### Task 4 - Selection and Bounding Box (`colour_detect`, `bbox`)
+
+Find the object and draw a tight box around it.
+
+- **Start with:** `colour_detect`, the per-channel tolerance test.
+- **Then build:** the run-length noise filter; min/max tracking on accepted pixels
+  only; publishing at frame start, suppressing empty and bad frames.
+- **Done when:** the box matches the model with and without the filter, across
+  frame boundaries and stalls.
+
+### Task 5 - Processing Pipeline and Contrast (`ipu`, `contrast`)
+
+Join the colour units into one stream that never loses or repeats a pixel.
+
+- **Start with:** `contrast`, the saturating gain around 128.
+- **Then build:** ready/valid stages around the fixed-latency, non-stallable `hue`;
+  carrying selection bits and metadata alongside it; per-pixel bypass so
+  unselected pixels keep their colour; equal latency in every mode.
+- **Done when:** random stall patterns produce exactly one correct output per
+  input with matching coordinates and frame markers.
+
+### Task 6 - System Test Bench (`test/`)
+
+Prove the whole chip draws the right picture.
+
+- **Start with:** decode the VGA pins of a test pattern into a PNG.
+- **Then build:** a cycle-exact cocotb source driver that answers pixel requests from
+  an image; frame capture from the output pins; comparison against
+  `process_frame()`; random configuration and error injection.
+- **Done when:** a full frame matches the model pixel for pixel, and each
+  injected fault is visible on screen.
+
+## Comparing the Tasks
+
+| Task | Arithmetic | State and timing | Interface contract | Verification focus |
+|---|---|---|---|---|
+| 1 IO | Light | Request queue, register file, lock | Pin protocol, metadata order | Protocol faults |
+| 2 VGA | Light | Raster counters, scheduler, staging | Fixed display deadlines | Timing and occupancy |
+| 3 Hue | Heavy (9 products) | Pipeline, multiplier sharing | Fixed latency, no stall | Bit-exact numerics |
+| 4 Selection | Light | Run counter, per-frame bounds | Accepted-pixel and SOF rules | Frame boundaries |
+| 5 Pipeline | Medium (3 products) | Elastic stages, latency matching | Ready/valid both sides | Stall patterns |
+| 6 Test bench | Model reuse | Cycle-exact driver | Both pin protocols | Whole-frame images |
+
+Every task has one state-heavy part, one contract it must honour exactly and its
+own verification target.
+
+With fewer than six students, the instructor takes task 6 first, then task 5.
+Each student still owns exactly one task.
 
 ## Milestones
 
-1. **Weeks 1-2:** agree cycle schedule; simulate IO assembly and VGA pattern
-   independently; establish a source-driver test.
-2. **Weeks 3-4:** display an unfiltered prepared image through the real request
-   path; prove the staging occupancy bound and reset/recovery.
-3. **Weeks 5-6:** selective contrast/channel rotation and bounding-box overlay;
-   verify unchanged background and frame-latched settings.
-4. **Weeks 7-8:** whole-system tests, image captures, synthesis estimates and
-   documentation. Demonstrate mode changes using image replay.
+1. **Weeks 1-2:** first steps done; interfaces between neighbouring tasks agreed.
+2. **Weeks 3-4:** an unfiltered image through the real request path (tasks
+   1, 2, 5, 6); hue and selection pass their unit tests (tasks 3, 4).
+3. **Weeks 5-6:** hue, contrast, selection and box on screen; recovery tests.
+4. **Weeks 7-8:** full-frame comparisons, synthesis and area estimates,
+   documentation, and a demo using the [filter playground](demos/playground.html)
+   settings.
 
 ## Completion Checklist
 
@@ -47,7 +118,6 @@ With five or six, preserve a clear verification/integration owner.
 
 ## Stretch Tasks
 
-Arbitrary-angle hue adjustment; ordered dithering; 3-tap horizontal filtering;
-physical VGA source/DAC bring-up; synthesis and
-placement feasibility. Vertical neighbourhood filters need additional line
+Ordered dithering; a 3-tap horizontal filter; several boxes for separate
+objects; physical VGA bring-up. Vertical neighbourhood filters need line
 storage and a separate memory budget.

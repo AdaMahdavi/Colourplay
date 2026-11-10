@@ -15,8 +15,9 @@ through its pixels.
 | `0x3` | Reference red | `0x00` | Selection reference R |
 | `0x4` | Selection tolerance | `0x00` | Inclusive difference limit |
 | `0x5` | Contrast gain | `0x10` | Unsigned Q4.4 |
-| `0x6` | Hue rotation | `0x00` | 0: RGB, 1: GBR, 2: BRG; upper bits zero |
-| `0x7`-`0xF` | Reserved | `0x00` | Writes must be zero |
+| `0x6` | Hue angle | `0x00` | Step 0-23, degrees = 15 x step; 24-255 rejected |
+| `0x7` | Box minimum run | `0x01` | Run-length noise filter for `bbox`; 0 and 1 disable it |
+| `0x8`-`0xF` | Reserved | `0x00` | Writes must be zero |
 
 The configuration reference is `configuration[31:8] = {R,G,B}`. Colour selection
 and bounding-box tracking operate even when both effects are disabled.

@@ -11,10 +11,10 @@ These are design gates, not hidden implementation assumptions.
 3. **Timing and area:** 50 MHz, the tile size in metadata and staging depth are
    provisional. No area fit or IHP pad/clock sign-off is claimed.
 4. **VGA compatibility:** confirm 25 MHz timing with the intended viewer/monitor.
-5. **Harness delivery:** the protocol is specified; image loader, source BFM and
-   interactive viewer integration remain instructor tasks.
-6. **Hue scope:** channel rotations are the required baseline. Agree a numerical
-   algorithm and budget before adding arbitrary hue rotation.
+5. **Source driver:** the protocol is specified; the cycle-exact source driver
+   and frame capture are task 6.
+6. **Hue area:** nine products per pixel. Measure multiplier count and area
+   early; table-size and sharing trade-offs are part of task 3.
 7. **Recovery and stale geometry:** specify exact frame-abort behavior, hold
    display geometry per frame and test recovery across prefetched SOF.
 

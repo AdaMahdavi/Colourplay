@@ -44,7 +44,10 @@ pipeline budget and physical feasibility remain draft requirements.
 
 ## Scope
 
-Required work covers input assembly, colour selection, selective contrast,
-channel rotation, bounding-box tracking and VGA scanout. Arbitrary-angle hue
-rotation, spatial filters, multiple-object detection and physical tapeout are
-extensions, not prerequisites for the first demonstration.
+Required work covers input assembly, colour selection, run-length noise
+filtering, bounding-box tracking, hue rotation in 15 degree steps, selective
+contrast and VGA scanout. Spatial filters, multiple-object detection and
+physical tapeout are extensions, not prerequisites for the first demonstration.
+
+The [filter playground](demos/playground.html) runs the same arithmetic as the
+specification in a browser.

@@ -2,8 +2,9 @@
 
 ## Overview
 
-This unit stores the inclusive minimum and maximum coordinates of selected
-pixels. It tracks one box around all matching pixels in a frame.
+This unit finds the inclusive minimum and maximum coordinates of the selected
+pixels in a frame. A streaming run-length filter ignores isolated noise so that a
+few stray matches do not stretch the box across the image.
 
 ## Ports
 
@@ -15,14 +16,28 @@ pixels. It tracks one box around all matching pixels in a frame.
 | `i_x`, `i_y` | 10 each | Input | Pixel coordinates |
 | `i_sof` | 1 | Input | First accepted pixel of a frame |
 | `i_previous_frame_bad` | 1 | Input | Error history of the old frame, qualified by accepted SOF |
-| `o_valid` | 1 | Output | Previous frame contained selected pixels |
+| `i_min_run` | 8 | Input | Configuration register `0x7`; 0 and 1 disable filtering |
+| `o_valid` | 1 | Output | Previous frame contained qualifying pixels |
 | `o_min_x`, `o_max_x`, `o_min_y`, `o_max_y` | 10 each | Output | Previous-frame bounds |
 
 ## Architecture Overview
 
+### Run-length filter
+
+Count consecutive selected pixels on the current row; restart the count at
+`x == 0` and on any unselected pixel. A selected pixel counts toward the box
+only once the run has reached `i_min_run`. On the pixel where the run first
+reaches `i_min_run`, the run's first pixel `x - i_min_run + 1` becomes the
+`min_x` candidate. This needs a counter, not a line buffer.
+
+The colour effects still apply to every selected pixel; only the box uses the
+filter.
+
+### Frame publication
+
 Maintain current-frame bounds and an `any_selected` bit separately from the
 published box. At an accepted SOF, publish the old frame's bounds, clear current
-state and include that same SOF pixel in the new frame if selected. An empty
+state and include that same SOF pixel in the new frame if it qualifies. An empty
 old frame clears `o_valid`. Also clear output valid when
 `i_previous_frame_bad` is set on that SOF; the old error history must not be
 mistaken for a failure of the new frame's first pixel.
@@ -30,13 +45,15 @@ mistaken for a failure of the new frame's first pixel.
 The display uses previous-frame geometry, which is correct for a repeated static
 image and one frame behind a changing source. VGA holds a separate display
 snapshot so advance processing of a new frame cannot move the visible box
-mid-frame. Invalid input frames require suppression of their result.
+mid-frame.
 
-Two sets of four ten-bit bounds require 80 payload bits, plus valid/hit state;
-VGA's display snapshot is additional storage.
+Two sets of four ten-bit bounds require 80 payload bits, plus valid/hit state
+and an 8-bit run counter; VGA's display snapshot is additional storage.
 
 ## Implementation Tasks
 
-Test a single matching pixel, border pixels, no matches, all matches, disjoint
+Compare against `bbox()` in `test/colourplay_model.py`. Test a single matching
+pixel, runs one shorter than and equal to `i_min_run`, runs touching x = 0 and
+the right edge, runs broken by a row change, no matches, all matches, disjoint
 regions and two consecutive frames. SOF with `i_accept=0` must not publish or
 clear anything.

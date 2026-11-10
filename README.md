@@ -20,15 +20,15 @@ Passing scaffold checks is not functional verification or tapeout readiness.
 
 ## Visual demos
 
-**[Try the interactive demo](https://adamahdavi.github.io/Colourplay/demos/object-colours.html)**
+**[Open the filter playground](https://adamahdavi.github.io/Colourplay/demos/playground.html)**:
+click an object to select its colour, then change tolerance, the box noise filter,
+hue angle and contrast. Only the selected object changes; the sky and ground are
+left alone.
 
-Objects change colour; the sky and ground are left alone.
+![Filter pipeline: input, mask, box filter, hue, contrast, VGA hue sweep](docs/demos/pipeline.gif)
 
-![Object colour changes, background unchanged](docs/demos/object-colours.gif)
-
-![Effect comparison sheet](docs/demos/object-colours-sheet.png)
-
-These are software previews, not recordings of the Colourplay RTL.
+Both are generated from `test/colourplay_model.py`, the same integer arithmetic
+the RTL must match. They are not recordings of the RTL.
 
 ## Hierarchy
 
@@ -77,9 +77,3 @@ REQUIRE_FUNCTIONAL=1 make -C test
 Each RTL template has `IMPLEMENTED = 0`. Implement the module and its acceptance
 tests before changing this marker. The GDS workflow runs on every push and
 publishes the spec site plus the TinyTapeout viewer (under `/gds/`) to GitHub Pages.
-
-## Ownership
-
-Project owner: Ada Mahdavi. No external collaborators are required for setup.
-The instructor supplies the image replay harness; student work covers IO, IPU,
-VGA and their verification.

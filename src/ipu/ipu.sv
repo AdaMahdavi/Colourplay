@@ -32,13 +32,16 @@ module ipu (
     localparam IMPLEMENTED = 0;
     wire selected;
     wire [23:0] hue_colour, contrast_colour;
+    wire hue_done;
 
     colour_detect u_colour_detect (
         .i_colour(i_colour), .i_reference(i_configuration[31:8]),
         .i_tolerance(i_configuration[39:32]), .o_selected(selected)
     );
     hue u_hue (
-        .i_colour(i_colour), .i_rotation(i_configuration[49:48]), .o_colour(hue_colour)
+        .clk(clk), .rst_n(rst_n), .i_start(i_valid && o_ready),
+        .i_colour(i_colour), .i_angle(i_configuration[52:48]),
+        .o_done(hue_done), .o_colour(hue_colour)
     );
     contrast u_contrast (
         .i_colour(hue_colour), .i_gain(i_configuration[47:40]), .o_colour(contrast_colour)
@@ -47,13 +50,18 @@ module ipu (
         .clk(clk), .rst_n(rst_n), .i_accept(i_valid && o_ready),
         .i_selected(selected), .i_x(i_x), .i_y(i_y), .i_sof(i_sof),
         .i_previous_frame_bad(i_previous_frame_bad),
+        .i_min_run(i_configuration[63:56]),
         .o_valid(o_box_valid), .o_min_x(o_min_x), .o_max_x(o_max_x),
         .o_min_y(o_min_y), .o_max_y(o_max_y)
     );
 
-    // TODO: register the selected transform or original colour, never both.
-    // Pipeline RGB, coordinates and frame markers together; propagate backpressure.
-    // Bypass disabled effects individually. Pad every mode to the same latency.
+    // TODO: hue is a fixed-latency unit that cannot stall. only start it when
+    //   the result is guaranteed somewhere to go; carry selected, x, y, sof, eof
+    //   alongside it for hue.LATENCY clocks so they rejoin the right pixel.
+    // apply hue/contrast only to selected pixels with the effect enabled;
+    //   unselected pixels leave with their original colour.
+    // every enable/selection combination must have the same total latency.
+    // propagate ready/valid backpressure; a stall must not duplicate or drop pixels.
     assign o_ready = 0;
     assign o_colour = 0;
     assign o_valid = 0;

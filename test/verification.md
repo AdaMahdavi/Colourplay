@@ -13,9 +13,9 @@ functional tests replace this scaffold.
 |---|---|
 | IO | Two-beat order, consecutive requests, metadata delay, held output, reserved writes, malformed beats, SOF recovery |
 | Colour Detection | Inclusive threshold, per-channel failure, subtraction extremes |
-| Hue | Three exact channel permutations, invalid mode rejection |
+| Hue | All 24 steps against the model, greys unchanged, steps 0/8/16 equal channel swaps, back-to-back starts |
 | Contrast | Identity, zero gain, max gain, signed shift, positive/negative clamp |
-| Bounding Box | Empty, one-pixel, edges, disjoint pixels, accepted-SOF boundary |
+| Bounding Box | Empty, one-pixel, edges, disjoint pixels, accepted-SOF boundary, runs one short of and equal to the minimum run |
 | IPU | Pixel accounting, stable stalls, selective bypass, metadata/config alignment |
 | VGA | Raster dimensions, sync widths/polarities, blanking RGB, request lead/wrap, staging occupancy, underflow/overflow |
 
